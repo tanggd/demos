@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
+  <title>前端跨页面通信方法</title>
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css"
     integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
 
@@ -55,7 +55,7 @@
     </div>
 
     <div class="panel panel-success">
-      <div class="panel-heading">2. BroadcastChannel</div>
+      <div class="panel-heading">2. Service Worker</div>
       <div class="panel-body">
         <form>
           <div class="form-group">
@@ -109,25 +109,36 @@
     // BroadcastChannel兼容性较差
     // 看看社区有没有垫片？？
 
-    // 方式2  serviceWorker
+    // 方式2  Service Worker
     // 注册serviceWorker
     // if ('serviceWorker' in navigator) {
     // }
-    navigator.serviceWorker.register('./sw.js').then(function () {
+    // console.log(navigator)
+    const serviceWorker = navigator.serviceWorker
+    // console.log(serviceWorker)
+    serviceWorker.register('/sw.js?a=12').then(function (res) {
+      console.log(res)
       console.log('Service Worker 注册成功')
+    }).catch(function(err) {
+      console.error('sw注册失败，错误：', err)
     })
     // 
-    navigator.serviceWorker.addEventListener('message', function (e) {
+    serviceWorker.addEventListener('message', function (e) {
       console.log('收到消息')
+      console.log(e)
+      const { data } = e
+      $('content2').innerHTML = `<div><span class="user">${data.user}</span>对你说：<span class="msg">${data.msg}</span>。</div>`
     })
     // 
     function sendMsg2() {
       // 发送消息
-      navigator.serviceWorker.controller.postMessage({
+      serviceWorker.controller.postMessage({
         user: $('exampleInputUser2').value || '匿名用户',
         msg: $('exampleInputMsg2').value || '--'
       })
     }
+
+    // TODO: 判断是自己
 
   </script>
 </body>
