@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css"
+    integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+
+  <style>
+    .jumbotron {
+      display: flex;
+      flex-wrap: wrap;
+    }
+
+    .panel {
+      width: 420px;
+      margin-right: 20px;
+    }
+
+    .content {
+      margin-top: 10px;
+    }
+
+    .user {
+      color: red;
+    }
+
+    .msg {
+      color: pink;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="jumbotron">
+    <div class="panel panel-primary">
+      <div class="panel-heading">1. BroadcastChannel</div>
+      <div class="panel-body">
+        <form>
+          <div class="form-group">
+            <label for="exampleInputUser1">用户名</label>
+            <input type="text" class="form-control" id="exampleInputUser1" placeholder="用户名">
+          </div>
+          <div class="form-group">
+            <label for="exampleInputMsg1">信息</label>
+            <input type="text" class="form-control" id="exampleInputMsg1" placeholder="信息">
+          </div>
+          <button class="btn btn-primary" type="button" onclick="sendMsg1()">发送消息</button>
+          <div class="content" id="content1"></div>
+        </form>
+      </div>
+    </div>
+
+    <div class="panel panel-success">
+      <div class="panel-heading">2. BroadcastChannel</div>
+      <div class="panel-body">
+        <form>
+          <div class="form-group">
+            <label for="exampleInputUser2">用户名</label>
+            <input type="text" class="form-control" id="exampleInputUser2" placeholder="用户名">
+          </div>
+          <div class="form-group">
+            <label for="exampleInputMsg2">信息</label>
+            <input type="text" class="form-control" id="exampleInputMsg2" placeholder="信息">
+          </div>
+          <button class="btn btn-success" type="button" onclick="sendMsg2()">发送消息</button>
+          <div class="content" id="content2"></div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const $ = (id) => {
+      return document.getElementById(id)
+    }
+
+    // 方式1  BroadcastChannel 
+    // 创建广播通信频道实例，所有同源页面都可以共享的（广播）频道
+    const symbol = 'tang'  // 频道标识
+    const broadcastChannel = new BroadcastChannel(symbol)
+    // 监听消息
+    broadcastChannel.onmessage = function (e) {
+      const { data } = e
+      $('content1').innerHTML = `<div><span class="user">${data.user}</span>对你说：<span class="msg">${data.msg}</span>。</div>`
+    }
+    // 或使用addEventListener监听
+    // broadcastChannel.addEventListener('message', e => {
+    //   console.log(e)
+    // })
+    // 关闭广播
+    // broadcastChannel.close()
+    // 错误监听
+    broadcastChannel.onmessageerror = function (e) {
+      console.warn('error:', e)
+    }
+    function sendMsg1() {
+      // 发送消息
+      broadcastChannel.postMessage({
+        user: $('exampleInputUser1').value || '匿名用户',
+        msg: $('exampleInputMsg1').value || '--'
+      })
+    }
+    // 其他:
+    // 多页面消息同步 API, 很好用
+    // BroadcastChannel兼容性较差
+    // 看看社区有没有垫片？？
+
+    // 方式2  serviceWorker
+    // 注册serviceWorker
+    // if ('serviceWorker' in navigator) {
+    // }
+    navigator.serviceWorker.register('./sw.js').then(function () {
+      console.log('Service Worker 注册成功')
+    })
+    // 
+    navigator.serviceWorker.addEventListener('message', function (e) {
+      console.log('收到消息')
+    })
+    // 
+    function sendMsg2() {
+      // 发送消息
+      navigator.serviceWorker.controller.postMessage({
+        user: $('exampleInputUser2').value || '匿名用户',
+        msg: $('exampleInputMsg2').value || '--'
+      })
+    }
+
+  </script>
+</body>
+
+</html>
