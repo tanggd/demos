@@ -71,6 +71,24 @@
         </form>
       </div>
     </div>
+
+    <div class="panel panel-success">
+      <div class="panel-heading">3. LocalStorage</div>
+      <div class="panel-body">
+        <form>
+          <div class="form-group">
+            <label for="exampleInputUser3">用户名</label>
+            <input type="text" class="form-control" id="exampleInputUser3" placeholder="用户名">
+          </div>
+          <div class="form-group">
+            <label for="exampleInputMsg3">信息</label>
+            <input type="text" class="form-control" id="exampleInputMsg3" placeholder="信息">
+          </div>
+          <button class="btn btn-success" type="button" onclick="sendMsg3()">发送消息</button>
+          <div class="content" id="content3"></div>
+        </form>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -136,7 +154,24 @@
     // 自己会给自己发消息，可以给自己生成一个id，标识是否是自己发的消息
 
 
-    // 3. 
+    // 3. LocalStorage
+    // 监听storage事件
+    const lsKey = 'tang-storage'
+    window.addEventListener('storage', function (e) {
+      if (e.key === lsKey) {
+        const data = JSON.parse(e.newValue)
+        $('content3').innerHTML = `<div><span class="user">${data.user}</span>对你说：<span class="msg">${data.msg}</span>。</div>`
+      }
+    })
+    // 
+    function sendMsg3() {
+      // 发送消息
+      window.localStorage.setItem(lsKey, JSON.stringify({
+        user: $('exampleInputUser3').value || '匿名用户',
+        msg: $('exampleInputMsg3').value || '--'
+      }))
+    }
+
 
   </script>
 </body>
