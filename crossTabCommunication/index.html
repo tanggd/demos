@@ -13,6 +13,7 @@
     .jumbotron {
       display: flex;
       flex-wrap: wrap;
+      align-items: flex-start;
     }
 
     .panel {
@@ -72,7 +73,7 @@
       </div>
     </div>
 
-    <div class="panel panel-success">
+    <div class="panel panel-info">
       <div class="panel-heading">3. LocalStorage</div>
       <div class="panel-body">
         <form>
@@ -84,16 +85,81 @@
             <label for="exampleInputMsg3">信息</label>
             <input type="text" class="form-control" id="exampleInputMsg3" placeholder="信息">
           </div>
-          <button class="btn btn-success" type="button" onclick="sendMsg3()">发送消息</button>
+          <button class="btn btn-info" type="button" onclick="sendMsg3()">发送消息</button>
           <div class="content" id="content3"></div>
         </form>
       </div>
     </div>
+
+    <div class="panel panel-warning">
+      <div class="panel-heading">4. Shared Worker</div>
+      <div class="panel-body">
+        <form>
+          <div class="form-group">
+            <label for="exampleInputUser4">用户名</label>
+            <input type="text" class="form-control" id="exampleInputUser4" placeholder="用户名">
+          </div>
+          <div class="form-group">
+            <label for="exampleInputMsg4">信息</label>
+            <input type="text" class="form-control" id="exampleInputMsg4" placeholder="信息">
+          </div>
+          <button class="btn btn-warning" type="button" onclick="sendMsg4()">发送消息</button>
+          <div class="content" id="content4"></div>
+        </form>
+      </div>
+    </div>
+
+    <div class="panel panel-danger">
+      <div class="panel-heading">5. IndexedDB</div>
+      <div class="panel-body">
+        <form>
+          <div class="form-group">
+            <label for="exampleInputUser5">用户名</label>
+            <input type="text" class="form-control" id="exampleInputUser5" placeholder="用户名">
+          </div>
+          <div class="form-group">
+            <label for="exampleInputMsg5">信息</label>
+            <input type="text" class="form-control" id="exampleInputMsg5" placeholder="信息">
+          </div>
+          <button class="btn btn-danger" type="button" onclick="sendMsg5()">发送消息</button>
+          <div class="content" id="content5"></div>
+        </form>
+      </div>
+    </div>
+
+    <div class="panel panel-primary">
+      <div class="panel-heading">6. window.open + window.opener</div>
+      <div class="panel-body">
+        <form>
+          <div class="form-group">
+            <label for="exampleInputUser6">用户名</label>
+            <input type="text" class="form-control" id="exampleInputUser6" placeholder="用户名">
+          </div>
+          <div class="form-group">
+            <label for="exampleInputMsg6">信息</label>
+            <input type="text" class="form-control" id="exampleInputMsg6" placeholder="信息">
+          </div>
+          <button class="btn btn-primary" type="button" onclick="sendMsg6()">发送消息</button>
+          <button class="btn btn-default" type="button" onclick="openNewPage()">在新标签页打开本页</button>
+          <div class="content" id="content6"></div>
+        </form>
+      </div>
+    </div>
+
   </div>
 
   <script>
     const $ = (id) => {
       return document.getElementById(id)
+    }
+    const addContentMsgEl = (id, data) => {
+      $(id).innerHTML = `<div><span class="user">${data.user}</span>对你说：<span class="msg">${data.msg}</span>。</div>`
+    }
+    const getUuid = () => {
+      var temp_url = URL.createObjectURL(new Blob())
+      var uuid = temp_url.toString()
+      URL.revokeObjectURL(temp_url)
+      return uuid.substr(uuid.lastIndexOf('/') + 1)
     }
 
     // 方式1  BroadcastChannel 
@@ -134,7 +200,7 @@
     // 注册serviceWorker
     serviceWorker.register('./sw.js').then(function (res) {
       console.log('Service Worker注册成功')
-    }).catch(function(err) {
+    }).catch(function (err) {
       console.error('Service Worker注册失败，错误：', err)
     })
     // 监听消息
@@ -171,6 +237,114 @@
         msg: $('exampleInputMsg3').value || '--'
       }))
     }
+
+
+    // 4. Shared Worker
+    // 利用 Shared Worker 来共享存储数据
+    const sharedWorkerName = 'tang'
+    const sharedWorker = new SharedWorker('./worker.js', sharedWorkerName)
+    const sharedWorkerPort = sharedWorker.port
+    // 监听消息
+    sharedWorkerPort.addEventListener('message', function (e) {
+      const { data } = e
+      if (data) {
+        $('content4').innerHTML = `<div><span class="user">${data.user}</span>对你说：<span class="msg">${data.msg}</span>。</div>`
+      }
+    })
+    // 启动端口
+    sharedWorkerPort.start()
+    // 轮训消息
+    setInterval(function () {
+      sharedWorkerPort.postMessage({ get: true });
+    }, 1000)
+
+    function sendMsg4() {
+      // 发送消息
+      sharedWorkerPort.postMessage({
+        user: $('exampleInputUser4').value || '匿名用户',
+        msg: $('exampleInputMsg4').value || '--'
+      })
+    }
+
+    // 问题
+    // 需要轮训 用get=true来获取数据，false存储数据
+    // 如果轮序间隔过长，会又很多问题
+    // 优化 对于标签页切换的操作可以 监听浏览器标签页的visibilitychange事件
+
+
+    // 5. IndexedDB
+    /**
+     * IndexedDB存取数据，轮训取数据，以达到共享数据
+     */
+
+
+    // 6.window.open + window.opener
+    // 打开新标签页打开本页面
+    const pages = new Map()
+    function openNewPage() {
+      // const childPage = window.open(location.href)
+      // 注意：由于安全策略，window.open()这个方法在异步请求后再调用会被浏览器阻止。
+      // 可以采用这样的，先开一个空白页，再请求完成之后设置空白页的url
+      // const tab = window.open('about:blank')
+      // tab.location.href = location.href
+
+      // 这里直接window.open
+      const childPageName = getUuid()
+      const childPage = window.open(location.href, childPageName)
+      childPage.onload = function () {
+        const item = pages.get(childPageName)
+        item.loaded = true
+      }
+      pages.set(childPageName, {
+        page: childPage,
+        loaded: false
+      })
+    }
+
+    window.addEventListener('message', function (e) {
+      const data = e.data
+      addContentMsgEl('content6', data)
+      const opener = window.opener
+      console.log(opener && !opener.closed && data.fromOpenner)
+      if (opener && !opener.closed && data.fromOpenner) {
+        opener.postMessage(data)
+      }
+      
+    })
+
+    function sendMsg6() {
+      // 发送消息
+      const msg = {
+        user: $('exampleInputUser6').value || '匿名用户',
+        msg: $('exampleInputMsg6').value || '--'
+      }
+      for (const [pageName, pageItem] of pages) {
+        const page = pageItem.page
+        if (pageItem.loaded && !page.closed) {
+          page.postMessage(msg)
+        }
+      }
+    }
+
+
+
+    // 以上方法都有同源策略的限制
+
+
+    /**
+     * 非同源的页面通信
+     * 可以在每个页面使用一个隐藏的iframe（地址是同一个，指定origin忽略同源限制）作为桥梁，
+     * 每个非同源的页面与iframe通信，
+     * iframe 之间就可以采用同源通信策略，iframe接收到消息后再与对应的父页面通信，目的达到。
+    */
+
+    // 其他
+    // hashChange
+    // cookie
+    // https://juejin.cn/post/6844903811232825357
+    // https://zhuanlan.zhihu.com/p/29368435
+
+
 
 
   </script>
